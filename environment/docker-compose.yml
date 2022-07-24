@@ -1,0 +1,12 @@
+version: '3'
+services:
+  app:
+    image: harbor.ranen.cc/php-images/php-composer-nginx:php74-v1.0
+    container_name: cicd-app
+    volumes:
+      - ../:/var/www/html:cached
+      - ./opcache.ini:/usr/local/etc/php/conf.d/opcache.ini
+      - ./init.sh:/usr/bin/init.sh
+    privileged: true
+    ports:
+      - 8088:80

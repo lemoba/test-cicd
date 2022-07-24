@@ -1,0 +1,50 @@
+name: Publish Docker image
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - master
+    tags:
+      - v*
+jobs:
+  push_to_registry:
+    name: Push Docker image
+    runs-on: ubuntu-20.04
+    env:
+      IMAGE_REPO: callback-service-app
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: echo ref
+        env:
+          TAG_REF: ${{ github.ref }}
+        run: echo "ref is $TAG_REF"
+      - name: copy file dev
+        uses: canastro/copy-file-action@master
+        if: github.ref == 'refs/heads/dev'
+        with:
+          source: ".env.dev.docker"
+          target: ".env"
+      - name: copy file prod
+        uses: canastro/copy-file-action@master
+        if: github.ref != 'refs/heads/dev'
+        with:
+          source: ".env.main.docker"
+          target: ".env"
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "7.4"
+      - uses: ramsey/composer-install@v1
+        with:
+          composer-options: "--optimize-autoloader --ignore-platform-reqs --no-dev --no-scripts"
+      - name: Push to Docker registry
+        uses: docker/build-push-action@v1
+        if: ${{ success() }}
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: harbor.ranen.cc/ranen
+          repository: ${{ env.IMAGE_REPO }}
+          path: .
+          tag_with_ref: true
