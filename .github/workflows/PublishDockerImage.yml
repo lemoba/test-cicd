@@ -12,7 +12,7 @@ jobs:
     name: Push Docker image
     runs-on: ubuntu-20.04
     env:
-      IMAGE_REPO: callback-service-app
+      IMAGE_REPO: cicd-service-app
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
